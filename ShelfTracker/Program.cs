@@ -63,5 +63,8 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
     await SeedData.SeedAsync(db);
 }
+app.UseStaticFiles();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
