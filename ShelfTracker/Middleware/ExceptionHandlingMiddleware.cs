@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,8 @@ public class ExceptionHandlingMiddleware
         response.ContentType = "application/json";
 
         var errorResponse = new ErrorResponse();
+        
+        errorResponse.TraceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
         switch (exception)
         {
@@ -81,6 +84,7 @@ public class ErrorResponse
     public string Message { get; set; } = string.Empty;
     public IEnumerable<string>? Details { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public string TraceId { get; set; } = string.Empty; 
 }
 
 
