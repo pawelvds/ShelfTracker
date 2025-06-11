@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShelfTracker.Data;
+using ShelfTracker.Dtos.Requests;
+using ShelfTracker.Dtos.Responses;
 using ShelfTracker.Entities;
+using ShelfTracker.Extensions;
+using ShelfTracker.Middleware;
 
 namespace ShelfTracker.Controllers;
 
@@ -10,10 +15,11 @@ namespace ShelfTracker.Controllers;
 public class BooksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    
-    public BooksController(ApplicationDbContext context)
+    private readonly IMapper _mapper;
+    public BooksController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -23,7 +29,8 @@ public class BooksController : ControllerBase
             .Where(b => !b.IsDeleted)
             .ToListAsync();
         
-        return Ok(books);
+        var bookResponses = _mapper.Map<List<BookResponse>>(books);
+        return Ok(bookResponses);
     }
 
     [HttpGet("{id}")]
@@ -35,15 +42,19 @@ public class BooksController : ControllerBase
 
         if (book == null)
         {
-            return NotFound();
+            throw new NotFoundException($"Book with the specified ID {id} not found.");
         }
 
-        return Ok(book);
+        var bookResponse = _mapper.Map<BookResponse>(book);
+        return Ok(bookResponse);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Book>> CreateBook(Book book)
+    public async Task<ActionResult<BookResponse>> CreateBook(CreateBookRequest request)
     {
+        ModelState.ThrowIfInvalid();
+        
+        var book = _mapper.Map<Book>(request);
         book.CreatedAt = DateTime.UtcNow;
         book.UpdatedAt = DateTime.UtcNow;
         
@@ -53,16 +64,14 @@ public class BooksController : ControllerBase
         await TrackBookCreation(book);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+        var bookResponse = _mapper.Map<BookResponse>(book);
+        return CreatedAtAction(nameof(GetBook), new { id = book.Id }, bookResponse);
     }
     
     [HttpPut("{id}")]
-    public async Task<ActionResult<Book>> UpdateBook(int id, Book book)
+    public async Task<ActionResult<BookResponse>> UpdateBook(int id, UpdateBookRequest request)
     {
-        if (id != book.Id)
-        {
-            return BadRequest();
-        }
+        ModelState.ThrowIfInvalid();
 
         var existingBook = await _context.Books
             .Where(b => b.Id == id && !b.IsDeleted)
@@ -70,19 +79,23 @@ public class BooksController : ControllerBase
 
         if (existingBook == null)
         {
-            return NotFound();
+            throw new NotFoundException($"Book with ID {id} not found");
         }
 
-        await TrackChanges(existingBook, book);
+        var newBookData = _mapper.Map<Book>(request);
+        newBookData.Id = id; 
+        
+        await TrackChanges(existingBook, newBookData);
 
-        existingBook.Title = book.Title;
-        existingBook.Description = book.Description;
-        existingBook.PublishDate = book.PublishDate;
-        existingBook.Authors = book.Authors;
+        existingBook.Title = request.Title;
+        existingBook.Description = request.Description;
+        existingBook.PublishDate = request.PublishDate;
+        existingBook.Authors = request.Authors;
         existingBook.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        return Ok(existingBook);
+    
+        return Ok(_mapper.Map<BookResponse>(existingBook));
     }
 
     [HttpDelete("{id}")]
@@ -94,7 +107,7 @@ public class BooksController : ControllerBase
 
         if (book == null)
         {
-            return NotFound();
+            throw new NotFoundException($"Book with the specified ID {id} not found.");
         }
 
         await TrackBookDeletion(book);
