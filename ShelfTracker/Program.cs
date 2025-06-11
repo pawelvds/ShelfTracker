@@ -28,6 +28,7 @@ builder.Services.AddAutoMapper(configuration =>
 });
 
 builder.Services.AddScoped<IChangeHistoryService, ChangeHistoryService>();
+builder.Services.AddScoped<IBookService, BookService>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {

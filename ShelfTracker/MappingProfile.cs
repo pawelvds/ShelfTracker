@@ -24,6 +24,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
             .ForMember(dest => dest.DeletedAt, opt => opt.Ignore());
 
-        CreateMap<Book, BookResponse>();
+        CreateMap<Book, BookResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
     }
 }
