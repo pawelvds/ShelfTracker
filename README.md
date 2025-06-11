@@ -36,7 +36,6 @@ A modern book management system with automatic change history tracking, built wi
 
 The application includes seed data for demonstration:
 - Sample books with authors and descriptions
-- Example change history showing various modification types
 - Ready-to-use filters and grouping examples
 
 ## 📊 API Endpoints
