@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ShelfTracker;
 using ShelfTracker.Data;
 using ShelfTracker.Middleware;
+using ShelfTracker.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,8 @@ builder.Services.AddAutoMapper(configuration =>
 {
     configuration.AddProfile<MappingProfile>();
 });
+
+builder.Services.AddScoped<IChangeHistoryService, ChangeHistoryService>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
