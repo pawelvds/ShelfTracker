@@ -56,6 +56,62 @@ namespace ShelfTracker.Migrations
 
                     b.ToTable("Books");
                 });
+
+            modelBuilder.Entity("ShelfTracker.Entities.ChangeHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BookTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NewValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OldValue")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("ChangeHistories");
+                });
+
+            modelBuilder.Entity("ShelfTracker.Entities.ChangeHistory", b =>
+                {
+                    b.HasOne("ShelfTracker.Entities.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+                });
 #pragma warning restore 612, 618
         }
     }
