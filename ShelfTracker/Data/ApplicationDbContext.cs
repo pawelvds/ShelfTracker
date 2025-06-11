@@ -8,6 +8,7 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
     
     public DbSet<Book> Books { get; set; }
+    public DbSet<ChangeHistory> ChangeHistories { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,6 +22,19 @@ public class ApplicationDbContext : DbContext
                     v => string.Join(';', v),
                     v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
                 );
+        });
+        
+        modelBuilder.Entity<ChangeHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ChangeType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.BookTitle).HasMaxLength(200);
+            entity.Property(e => e.FieldName).HasMaxLength(50);
+    
+            entity.HasOne(e => e.Book)
+                .WithMany()
+                .HasForeignKey(e => e.BookId);
         });
         
         base.OnModelCreating(modelBuilder);
